@@ -18,10 +18,10 @@ QInt& QInt::operator=(const QInt& x){
 	return *this;
 }
 
-QInt QInt::operator-() const{
+QInt operator-(QInt q){
 	QInt result;
 	for (int i = 0; i < 4; i++){
-		result.m_binary[i] = ~m_binary[i];
+		result.m_binary[i] = ~q.m_binary[i];
 	}
 
 	bool overflow = true;
@@ -33,37 +33,37 @@ QInt QInt::operator-() const{
 	return result;
 }
 
-bool QInt::GetBit(unsigned short position) const{
+bool GetBit(QInt q, unsigned short position){
 	unsigned short block = position / 32;
 	unsigned short i = position % 32;
-	return (m_binary[block] & (1 << i)) != 0;
+	return (q.m_binary[block] & (1 << i)) != 0;
 }
-void QInt::SetBit(unsigned short position, bool on){
+void SetBit(QInt& q, unsigned short position, bool on){
 	unsigned short block = position / 32;
 	unsigned short i = position % 32;
 	if (on){
-		m_binary[block] |= (1 << i);
+		q.m_binary[block] |= (1 << i);
 	}
 	else{
-		m_binary[block] &= (~(1 << i));
+		q.m_binary[block] &= (~(1 << i));
 	}
 }
 
-void QInt::ScanQInt(){
+void ScanQInt(QInt& q){
 	StrInt temp;
 	std::cin >> temp;
 
 	bool negative = temp.isNegative();
 	unsigned short shift = 0;
 	while (!temp.isZero()){
-		if (shift >= 128){
+		if (shift >= QInt::SIZE_OF_QINT){
 			std::cout << "Too big" << std::endl;
 			return;
 		}
 		unsigned short block = shift / 32;
 		unsigned short pos = shift % 32;
 		if (!temp.isEven()){
-			m_binary[block] |= 1 << pos;
+			q.m_binary[block] |= 1 << pos;
 		}
 
 		shift++;
@@ -71,14 +71,13 @@ void QInt::ScanQInt(){
 	}
 
 	if (negative){
-		*this = -(*this);
+		q = -q;
 	}
 }
-void QInt::PrintQInt(){
-	QInt temp = *this;
-	bool negative = (m_binary[3] & 1 << 31) != 0;
+void PrintQInt(QInt q){
+	bool negative = (q.m_binary[3] & 1 << 31) != 0;
 	if (negative){
-		temp = -temp;
+		q = -q;
 	}
 
 	StrInt result;
@@ -87,7 +86,7 @@ void QInt::PrintQInt(){
 		unsigned short pos = i % 32;
 
 		result = result.Double();
-		uint32_t isOn = temp.m_binary[block] & (1 << pos);
+		uint32_t isOn = q.m_binary[block] & (1 << pos);
 		if (isOn != 0)
 			++result;
 	}
@@ -99,165 +98,203 @@ void QInt::PrintQInt(){
 	std::cout << result << std::endl;
 }
 
-bool* QInt::DecToBin(){
-	bool* result = new bool[128];
+std::string DecToBin(QInt q){
+	std::string result;
 
-	for (unsigned short shift = 0; shift < 128; shift++){
-		unsigned short block = shift / 32;
-		unsigned short pos = shift % 32;
-		result[shift] = (m_binary[block] & (1 << pos)) != 0;
+	unsigned short prevBit = GetBit(q, 127);
+	unsigned short curBit = GetBit(q, 126);
+	short pos = 126;
+	while (curBit == prevBit && pos >= 0){
+		prevBit = curBit;
+		pos--;
+		curBit = GetBit(q, pos);
+	}
+	pos++;
+
+	while (pos >= 0){
+		result.push_back(GetBit(q, pos--) + '0');
 	}
 
 	return result;
 }
-QInt QInt::BinToDec(bool* bits){
+QInt BinToDec(const std::string& bits){
 	QInt result;
-	for (unsigned short shift = 0; shift < 128; shift++){
-		unsigned short bit = bits[shift] ? 1 : 0;
-		unsigned short block = shift / 32;
-		unsigned short pos = shift % 32;
-
-		result.m_binary[block] |= bit << pos;
+	short length = bits.length();
+	for (short i = 0; i < length; i++){
+		SetBit(result, length - 1 - i, bits[i] == '1');
+	}
+	for (short i = length; i < QInt::SIZE_OF_QINT; i++){
+		SetBit(result, i, bits[0] == '1');
 	}
 
 	return result;
 }
 
-char* QInt::BinToHex(bool* bits){
+std::string BinToHex(const std::string& bits){
 	char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	char* result = new char[33];
-	for (unsigned short block = 0; block < 32; block++){
-		unsigned short total = 0;
-		for (short i = 3; i >= 0; i--){
-			total = total * 2 + (bits[block * 4 + i] ? 1 : 0);
+	std::string result;
+	std::string temp;
+
+	unsigned short pos = 0;
+	unsigned short total = 0;
+	unsigned short multiplier = 1;
+	while (pos < bits.length()){
+		if (pos % QInt::BIN_PER_HEX == 0 && pos != 0){
+			temp.push_back(hex[total]);
+			total = 0;
+			multiplier = 1;
 		}
-		result[block] = hex[total];
+
+		total = total + (bits[bits.length() - 1 - pos] - '0') * multiplier;
+		pos++;
+		multiplier *= 2;
 	}
 
-	result[32] = '\0';
+	while (pos % QInt::BIN_PER_HEX != 0){
+		total = total + (bits[0] - '0') * multiplier;
+		pos++;
+		multiplier *= 2;
+		if (pos % QInt::BIN_PER_HEX == 0){
+			temp.push_back(hex[total]);
+		}
+	}
+
+	for (short i = temp.length() - 1; i >= 0; i--){
+		result.push_back(temp[i]);
+	}
 
 	return result;
 }
-char* QInt::DecToHex(){
-	char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
-	char* result = new char[33];
-	for (unsigned short block = 0; block < 32; block++){
-		unsigned short total = 0;
-		for (short i = 3; i >= 0; i--){
-			total = total * 2 + (GetBit(block * 4 + i) ? 1 : 0);
-		}
-		result[block] = hex[total];
+std::string DecToHex(QInt q){
+	return BinToHex(DecToBin(q));
+}
+QInt HexToDec(const std::string& hexs){
+	QInt result;
+
+		uint32_t multiplier = 1;
+	for(unsigned short pos = 0; pos < hexs.length(); pos++){
+		char c = hexs[hexs.length() - 1 - pos];
+		unsigned short val = c < 'A' ? (c - '0') : (10 + c - 'A');
+		unsigned short block = pos / QInt::HEX_PER_UINT;
+		result.m_binary[block] = result.m_binary[block] + (val * multiplier);
+		multiplier *= 16;
 	}
 
-	result[32] = '\0';
+	if (hexs[0] >= '8'){
+		unsigned short block = (hexs.length() - 1) / QInt::HEX_PER_UINT;
+		unsigned short shift = ((hexs.length() - 1) % QInt::HEX_PER_UINT + 1) * QInt::BIN_PER_HEX;
+		result.m_binary[block] |= 0xffffffff << shift;
+		for (unsigned short i = block + 1; i < QInt::UINT_NUM; i++){
+			result.m_binary[i] = 0xffffffff;
+		}
+	}
 
 	return result;
 }
 
-QInt QInt::operator+(const QInt& q){
+
+QInt operator+(QInt q, QInt m){
 	QInt result;
 	bool overflow = false;
 	for (unsigned short i = 0; i < 4; i++){
-		result.m_binary[i] = m_binary[i] + q.m_binary[i] + (overflow ? 1 : 0);
-		if (m_binary[i] < q.m_binary[i]){
-			overflow = result.m_binary[i] <= m_binary[i] && result.m_binary[i] < q.m_binary[i];
+		result.m_binary[i] = q.m_binary[i] + m.m_binary[i] + (overflow ? 1 : 0);
+		if (q.m_binary[i] < m.m_binary[i]){
+			overflow = result.m_binary[i] <= q.m_binary[i] && result.m_binary[i] < m.m_binary[i];
 		}
 		else{
-			overflow = result.m_binary[i] < m_binary[i] && result.m_binary[i] <= q.m_binary[i];
+			overflow = result.m_binary[i] < q.m_binary[i] && result.m_binary[i] <= m.m_binary[i];
 		}
 	}
 	return result;
 }
-QInt QInt::operator-(const QInt& q){
-	return *this + (-q);
+QInt operator-(QInt q, QInt m){
+	return q + (-m);
 }
 
-//TODO: * /
-QInt QInt::operator*(const QInt& q){
-	QInt a, tempQ = q;
+QInt operator*(QInt q, QInt m){
+	QInt a;
 	unsigned short temp = 0;
-	unsigned short n = 128;
+	unsigned short n = QInt::SIZE_OF_QINT;
 	while (n > 0){
-		unsigned short lastQ = tempQ.GetBit(0);
+		unsigned short lastQ = GetBit(m, 0);
 		if (lastQ == 1 && temp == 0){
-			a = a - *this;
+			a = a - q;
 		}
 		else if (lastQ == 0 && temp == 1){
-			a = a + *this;
+			a = a + q;
 		}
 		
-		unsigned short lastA = a.GetBit(0);
+		unsigned short lastA = GetBit(a, 0);
 		a = a >> 1;
-		tempQ = tempQ >> 1;
-		tempQ.SetBit(127, lastA == 1);
+		m = m >> 1;
+		SetBit(m, 127, lastA == 1);
 		temp = lastQ;
 		n--;
 	}
-	return tempQ;
+	return m;
 }
-QInt QInt::operator/(const QInt& q){
-	QInt a, temp = *this, tempQ = q;
-	unsigned short n = 128;
-	bool sameSign = (this->GetBit(127) ^ q.GetBit(127)) == 0;
-	if (temp.GetBit(127) == 1){
-		temp = -temp;
+QInt operator/(QInt q, QInt m){
+	QInt a;
+	unsigned short n = QInt::SIZE_OF_QINT;
+	bool sameSign = (GetBit(q, 127) ^ GetBit(m, 127)) == 0;
+	if (GetBit(q, 127) == 1){
+		q = -q;
 	}
-	if (tempQ.GetBit(127) == 1){
-		tempQ = -tempQ;
+	if (GetBit(m, 127) == 1){
+		m = -m;
 	}
 
 	while (n > 0){
-		unsigned short first = temp.GetBit(127);
+		unsigned short first = GetBit(q, 127);
 		a = a << 1;
-		temp = temp << 1;
-		a.SetBit(0, first == 1);
-		a = a - tempQ;
-		if (a.GetBit(127) == 1){
-			a = a + tempQ;
+		q = q << 1;
+		SetBit(a, 0, first == 1);
+		a = a - m;
+		if (GetBit(a, 127) == 1){
+			a = a + m;
 		}
 		else{
-			temp.SetBit(0, true);
+			SetBit(q, 0, true);
 		}
 		n--;
 	}
 
 	if (!sameSign){
-		return -temp;
+		return -q;
 	}
-	return temp;
+	return q;
 }
 
-QInt QInt::operator&(const QInt& q){
+QInt operator&(QInt q, QInt m){
 	QInt result;
 	for (unsigned short i = 0; i < 4; i++){
-		result.m_binary[i] = (m_binary[i] & q.m_binary[i]);
+		result.m_binary[i] = (q.m_binary[i] & m.m_binary[i]);
 	}
 	return result;
 }
-QInt QInt::operator|(const QInt& q){
+QInt operator|(QInt q, QInt m){
 	QInt result;
 	for (unsigned short i = 0; i < 4; i++){
-		result.m_binary[i] = (m_binary[i] & q.m_binary[i]);
+		result.m_binary[i] = (q.m_binary[i] | m.m_binary[i]);
 	}
 	return result;
 }
-QInt QInt::operator^(const QInt& q){
+QInt operator^(QInt q, QInt m){
 	QInt result;
 	for (unsigned short i = 0; i < 4; i++){
-		result.m_binary[i] = (m_binary[i] & q.m_binary[i]);
+		result.m_binary[i] = (q.m_binary[i] ^ m.m_binary[i]);
 	}
 	return result;
 }
-QInt QInt::operator~(){
+QInt operator~(QInt q){
 	QInt result;
 	for (unsigned short i = 0; i < 4; i++){
-		result.m_binary[i] = ~m_binary[i];
+		result.m_binary[i] = ~q.m_binary[i];
 	}
 	return result;
 }
 
-QInt QInt::operator<<(const int n){
-	QInt result = *this;
+QInt operator<<(QInt q, const int n){
 	unsigned short sum = 0;
 	while (sum < n){
 		unsigned short k;
@@ -272,16 +309,16 @@ QInt QInt::operator<<(const int n){
 		uint32_t current = 0;
 		uint32_t next = 0;
 		for (unsigned short i = 0; i < 4; i++){
-			next = 0 | (result.m_binary[i] >> (32 - k));
-			result.m_binary[i] = (result.m_binary[i] << k) | current;
+			next = 0 | (q.m_binary[i] >> (32 - k));
+			q.m_binary[i] = (q.m_binary[i] << k) | current;
 			current = next;
 		}
 	}
-	return result;
+	return q;
 }
-QInt QInt::operator>>(const int n){
-	QInt result = *this;
+QInt operator>>(QInt q, const int n){
 	unsigned short sum = 0;
+	bool negative = GetBit(q, 127) == 1;
 	while (sum < n){
 		unsigned short k;
 		if (n - sum > 32){
@@ -295,13 +332,13 @@ QInt QInt::operator>>(const int n){
 		uint32_t current = 0;
 		uint32_t next = 0;
 		for (short i = 3; i >= 0; i--){
-			next = 0 | (result.m_binary[i] << (32 - k));
-			result.m_binary[i] = (result.m_binary[i] >> k) | current;
+			next = 0 | (q.m_binary[i] << (32 - k));
+			q.m_binary[i] = (q.m_binary[i] >> k) | current;
 			current = next;
 		}
-		if (GetBit(127)){
-			result.m_binary[3] |= 0xffffffff << (32 - k);
+		if (negative){
+			q.m_binary[3] |= 0xffffffff << (32 - k);
 		}
 	}
-	return result;
+	return q;
 }

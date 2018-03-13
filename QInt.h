@@ -5,41 +5,52 @@
 #include "StrInt.h"
 #include <cstdint>
 
-class QInt{
-private:
-	uint32_t m_binary[4];
-public:
+struct QInt{
 	QInt();
-	QInt(const QInt& x);
-	QInt& operator=(const QInt& x);
+	QInt(const QInt& q);
+	QInt& operator=(const QInt& q);
 
-	QInt operator-() const;
+	static const unsigned short BIN_PER_HEX = 4;
+	static const unsigned short HEX_PER_UINT = 8;
 
-	bool GetBit(unsigned short position) const;
-	void SetBit(unsigned short position, bool on);
+	static const unsigned short MAX_HEX = 15;
+	static const uint32_t MAX_UINT = 0xffffffff;
 
-	void ScanQInt();
-	void PrintQInt();
-
-	bool* DecToBin();
-	static QInt BinToDec(bool* bits);
-
-	static char* BinToHex(bool *bits);
-	char* DecToHex();
-
-	// TODO: + - * /
-	QInt operator+(const QInt& q);
-	QInt operator-(const QInt& q);
-	QInt operator*(const QInt& q);
-	QInt operator/(const QInt& q);
+	static const unsigned short BINARY = 2;
+	static const unsigned short HEX = 16;
 	
-	// TODO: & | ^ ~ 
-	QInt operator&(const QInt& q);
-	QInt operator|(const QInt& q);
-	QInt operator^(const QInt& q);
-	QInt operator~();
+	static const unsigned short UINT_NUM = 4;
+	
+	static const unsigned short SIZE_OF_QINT = 128;
 
-	// TODO: << >>
-	QInt operator<<(const int n);
-	QInt operator>>(const int n);
+	uint32_t m_binary[UINT_NUM];
 };
+
+bool GetBit(QInt q, unsigned short position);
+void SetBit(QInt& q, unsigned short position, bool on);
+
+void ScanQInt(QInt& q);
+void PrintQInt(QInt q);
+
+std::string DecToBin(QInt q);
+QInt BinToDec(const std::string& bits);
+
+std::string BinToHex(const std::string& bits);
+std::string DecToHex(QInt q);
+QInt HexToDec(const std::string& hexs);
+
+// TODO: + - * /
+QInt operator+(QInt q, QInt m);
+QInt operator-(QInt q, QInt m);
+QInt operator*(QInt q, QInt m);
+QInt operator/(QInt q, QInt m);
+
+// TODO: & | ^ ~ 
+QInt operator&(QInt q, QInt m);
+QInt operator|(QInt q, QInt m);
+QInt operator^(QInt q, QInt m);
+QInt operator~(QInt q);
+
+// TODO: << >>
+QInt operator<<(QInt q, const int n);
+QInt operator>>(QInt q, const int n);
