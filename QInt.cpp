@@ -139,15 +139,15 @@ std::string BinToHex(const std::string& bits){
 	unsigned short total = 0;
 	unsigned short multiplier = 1;
 	while (pos < bits.length()){
-		if (pos % QInt::BIN_PER_HEX == 0 && pos != 0){
+		total = total + (bits[bits.length() - 1 - pos] - '0') * multiplier;
+		pos++;
+		multiplier *= 2;
+		
+		if (pos % QInt::BIN_PER_HEX == 0){
 			temp.push_back(hex[total]);
 			total = 0;
 			multiplier = 1;
 		}
-
-		total = total + (bits[bits.length() - 1 - pos] - '0') * multiplier;
-		pos++;
-		multiplier *= 2;
 	}
 
 	while (pos % QInt::BIN_PER_HEX != 0){
@@ -180,14 +180,14 @@ QInt HexToDec(const std::string& hexs){
 		multiplier *= 16;
 	}
 
-	if (hexs[0] >= '8'){
-		unsigned short block = (hexs.length() - 1) / QInt::HEX_PER_UINT;
-		unsigned short shift = ((hexs.length() - 1) % QInt::HEX_PER_UINT + 1) * QInt::BIN_PER_HEX;
-		result.m_binary[block] |= 0xffffffff << shift;
-		for (unsigned short i = block + 1; i < QInt::UINT_NUM; i++){
-			result.m_binary[i] = 0xffffffff;
-		}
-	}
+	//if (hexs[0] >= '8'){
+	//	unsigned short block = (hexs.length() - 1) / QInt::HEX_PER_UINT;
+	//	unsigned short shift = ((hexs.length() - 1) % QInt::HEX_PER_UINT + 1) * QInt::BIN_PER_HEX;
+	//	result.m_binary[block] |= 0xffffffff << shift;
+	//	for (unsigned short i = block + 1; i < QInt::UINT_NUM; i++){
+	//		result.m_binary[i] = 0xffffffff;
+	//	}
+	//}
 
 	return result;
 }
@@ -198,12 +198,7 @@ QInt operator+(QInt q, QInt m){
 	bool overflow = false;
 	for (unsigned short i = 0; i < 4; i++){
 		result.m_binary[i] = q.m_binary[i] + m.m_binary[i] + (overflow ? 1 : 0);
-		if (q.m_binary[i] < m.m_binary[i]){
-			overflow = result.m_binary[i] <= q.m_binary[i] && result.m_binary[i] < m.m_binary[i];
-		}
-		else{
-			overflow = result.m_binary[i] < q.m_binary[i] && result.m_binary[i] <= m.m_binary[i];
-		}
+		overflow = 0xffffffff - q.m_binary[i] < m.m_binary[i];
 	}
 	return result;
 }
