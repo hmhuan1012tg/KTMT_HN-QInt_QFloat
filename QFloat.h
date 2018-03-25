@@ -7,6 +7,9 @@
 #include "StrFloat.h"
 using namespace std;
 
+const int MAX_VALUE_EXP = 16383; //2^14-1=16383
+const int MIN_VALUE_EXP = -(MAX_VALUE_EXP + 1);
+
 class QFloat
 {
 	int m_el[4]; //el: element_ lưu dãy 128 bit dưới dạng số thập phân. //Save 128 bits under DEC form.
