@@ -2,57 +2,71 @@
 
 #include "QFloat.h"
 
-
+//Chuyển về dạng nhị phân những số trước dấu phẩy bằng cách chia cho 2.
 void convertBFD(string &bfd)
 {
-	string res = "";
-	string tmp = bfd;
-	int j = 0;
-	int sign = 0;
-	if (bfd[0] == '-') {
+	string res = ""; //Lưu tạm giá trị phép dư số khi chia cho 2.
+	string tmp = bfd; //Lưu tạm giá trị của bfd. 
+	int j = 0; 
+	int sign = 0; //Lưu giá trị dấu
+	if (tmp[0] == '-') { //Kiểm tra dấu
 		sign = -1;
-		bfd.erase(0, 1);
+		tmp.erase(0, 1); //Xóa dấu
 	}
+	//Thực hiện phép chia 2, lưu lại số dư trong từng phép chia.
 	while (tmp.length() != 0) {
 		j = j * 10 + tmp[0];
-		res.push_back(j % 2 + '0');
+		res.push_back(j % 2 + '0'); //Thêm số dư vào cuối.
 		j = j / 2;
-		tmp.erase(0, 1);
+		tmp.erase(0, 1); //Xóa số đầu tiên.
 	}
+	//Thêm dấu cho kết quả ở dạng nhị phân.
 	if (sign == -1) res.push_back('-');
+	//Chuyển đổi về đúng dạng nhị phân bằng cách đảo chuỗi.
 	res.reserve(res.length());
+	//Gán lại kết quả.
 	bfd = res;
 }
+
+//Kiểm tra dãy số nhập vào có dạng xxxxx*10^x hay không? Nếu có thì chuyển a về dạng tự nhiên, nghĩa là dịch dấu phẩy về trái hoặc phải.
 int checkx10(string &a)
 {
-	int posx10 = -1;
-	int  i = 0;
-	for (posx10 = a.length() - 1; posx10 >= 0; posx10--)
+	int posx10; //Ví trí xuất hiện kí tự: 'x'
+	for (posx10 = a.length() - 1; posx10 >= 0; posx10--) //Chạy từ cuối về kiểm tra.
 		if (a[posx10] == 'x') break;
-	if (posx10 == -1) return;
-	a.erase(posx10 + 1, 3);
-	int sign = 1;
-	if (a[posx10 + 1] == '-') {
+	//Không tìm thấy thì thoát.
+	if (posx10 == -1) return 0;
+
+	a.erase(posx10 + 1, 3); //Xóa chuỗi "10^" từ (vị trí "x" +1) đến (vị trí "x" +3)
+	int sign = 1; //Lưu dấu của giá trị mũ 
+	if (a[posx10 + 1] == '-') {//Kiểm tra mũ âm
 		sign = -1;
-		a.erase(posx10 + 1, 1);
+		a.erase(posx10 + 1, 1); //Xóa mũ âm.
 	}
-	int vx10 = 0;
-	while (a.length() > posx10)
+
+	int vx10 = 0; //Lưu giá trị của mũ.
+	while (a.length() > posx10+1) //Xóa khi còn kí tự 'x'
 	{
-		vx10 = vx10 * 10 + a[posx10 + 1] - '0';
+		vx10 = vx10 * 10 + a[posx10 + 1] - '0'; //Tính giá trị của mũ
 		a.erase(posx10 + 1, 1);
 	}
+	//Xóa dấu 'x'
+	a.erase(a.length() - 1, 1);
+	//Trả về giá trị kèm với dấu.
 	return vx10*sign;
 }
-int convertAFD(string &afd, int Nexp)
-{
-	int  j = 0;
-	string res = ".";
-	while (res.length()-1 <112-Nexp) {
-		int s = 0;
-		j = 0;
+
+//Chuyển về dạng nhị phân của những số sau dấu phẩy bằng cách nhân 2 rồi lấy phần nguyên. 
+int convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể chuyển từ bfd sang cho afd để thay đổi số mũ N_exp
+{										//N_exp là giá trị trả về của convertAFD cho biết số mũ của a ở dạng cơ số 2. (2^N_exp)
+	int  j;
+	string res = "."; //Lưu giá trị số sau dấu phẩy phần thập phân ở dạng cơ số 2. Độ dài tối đa là 112 bit nhưng do chuyển từ bfd sang Nexp số nên chiều dài của res= 112-Nexp
+	while (res.length()-1 <112-Nexp) { //-1 vì có '.'
+		//Nhân afd với 2.
+		int s = 0; // lưu số nhớ trong phép nhân.
+		j = 0; //Lưu phần trích của số để nhân.
 		for (int i = afd.length() - 1; i >= 0; i--)
-			if (afd[i]!='.')
+			if (afd[i]!='.') 
 			{
 				j = (afd[i] - '0') * 2+s;
 				if (j > 9) s = 1;
@@ -60,85 +74,74 @@ int convertAFD(string &afd, int Nexp)
 				j %= 10;
 				afd[i] = j + '0';
 			}
-		res.push_back(afd[0]);
-		afd.erase(0, 1);
-		afd.insert(0, 1, '0');
-	}
-	int res1 = 0;
-	while (j > 0 && res1 + res.length() + Nexp < 16383) //2^14-1=16383
-	{
-		int s = 0;
-		j = 0;
-		for (int i = afd.length() - 1; i >= 0; i--)
-			if (afd[i] != '.')
-			{
-				j = (afd[i] - '0') * 2 + s;
-				if (j > 9) s = 1;
-				else s = 0;
-				j %= 10;
-				afd[i] = j + '0';
-			}
-		res1++;
-		afd.erase(0, 1);
-		afd.insert(0, 1, '0');
+		res.push_back(afd[0]); //Thêm vào sau kết quả của phần nguyên afd sau khi nhân.
+		afd.erase(0, 1); //Bỏ phần nguyên của afd.
+		afd.insert(0, 1, '0'); //Thêm '0' vào phần nguyên của afd.
 	}
 	afd = res;
-	return res1;
 }
 int convertToBin(string &a)
 {
-	int hx10=checkx10(a);
-	string bfd = "";
-	string afd = "0.";
+	int hx10=checkx10(a); //Kiểm tra xem a có dạng x10^
+	string bfd = ""; //Lưu số trước dấu phẩy.
+	string afd = "0."; //Lưu số sau dấu phẩy.
 	int i;
-	//Extract numbers before dot
+	//Tách số trước dấu phẩy. //Extract numbers before dot
 	for (i = 0; i < a.length() && a[i] != '.'; i++)
 		bfd.push_back(a[i]);
-	//Extract numbers after dot
+	//Tách số sau dấu phẩy. // Extract numbers after dot
 	i++;
-	for (i = i; i < a.length(); i++)
+	for (i = i+1; i < a.length(); i++)
 		afd.push_back(a[i]);
-	afd.push_back('0');
+	afd.push_back('0');//Tránh trường hợp "0." nên cần thêm "0" vào sau cùng (không thay đổi giá trị của số)
+
+	//Nếu a có dạng "x10^" thì chuyển theo từng trường hợp (>0 hoặc <0)
 	if (hx10 > 0) {
-		for (i = 1; i <= hx10; i++)
+		for (i = 1; i <= hx10; i++) 
 		{
-			bfd.push_back(afd[2]);
+			bfd.push_back(afd[2]); //afd[2] bỏ qua "0."
 			afd.erase(2, 1);
-			afd.push_back('0');
+			afd.push_back('0'); //Thêm 0 vào để luôn có số sau dấu phẩy.
 		}
 	}
 	else
 	{
 		for (i = 1; i <= hx10; i++)
 		{
-			afd.insert(2, 1, bfd[bfd.length() - 1]);
+			afd.insert(2, 1, bfd[bfd.length() - 1]); //Chuyển số cuối từ bfd sang làm số đầu của afd.
 			bfd.erase(bfd.length() - 1, 1);
-			if (bfd.length() ==0 || bfd[bfd.length()-1]=='-') bfd.push_back('0');
+			if (bfd.length() ==0 || bfd[bfd.length()-1]=='-') bfd.push_back('0'); //Xét trường hợp bfd rỗng hoặc bfd="-".
 		}
 	}
-	convertBFD(bfd);
 
-	int Nexp = bfd.length()-1-(bfd[0]=='-'); //The number can add to express
-	int N_exp=convertAFD(afd, Nexp);
-	a = bfd + afd;
-	return N_exp;
+	convertBFD(bfd); //Chuyển đổi bfd
+	int Nexp = bfd.length()-1-(bfd[0]=='-'); //Số lượng số có thể chuyển sang cho afd với điều kiện bfd chứ 1 số. // The number can add to express
+	convertAFD(afd,Nexp);
+
+	a = bfd + afd; 
+	return Nexp;
 }
 void normalizeBin(string &a,int &N_exp)
 {
-	string bfd = "", afd = ".";
+	string bfd = "", afd = "."; //bfd: lưu số trước dấu phẩy 
+								//afd: lưu số sau dấu phẩy
 	int i;
-	for (i = 0; i < a.length() && a[i] != '.'; i++) bfd.push_back(a[i]);
-	for (i = i + 1; i < a.length();i++) afd.push_back(a[i]);
-	while (bfd.length() > 1)
+	//Tách thành 2 phần: Trước dấu phẩy và sau dấu phẩy.
+	for (i = 0; i < a.length() && a[i] != '.'; i++) bfd.push_back(a[i]); //Tách trước dấu phẩy.
+	for (i = i + 1; i < a.length(); i++) afd.push_back(a[i]); //Tách sau dấu phẩy.
+
+	while (bfd.length() > 1) //Chuyển về dạng x.xxxxx tức là bfd có 1 kí tự duy nhất. 
 	{
-		if (bfd.length() == 3 && bfd[0] = '-') break;
-		afd.insert(1, 1, bfd[bfd.length()]);
-		bfd.erase(bfd.length() - 1);
-		N_exp++;
+		if (bfd.length() == 2 && bfd[0] == '-') break; //Dừng khi bfd="-x"
+		afd.insert(1, 1, bfd[bfd.length()]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
+		bfd.erase(bfd.length() - 1); //Xóa số trước dấu phẩy. (Xóa cuối bfd).
+		N_exp++; //Cộng số mũ vì dời dấu phẩy qua trái.
 	}
-	while (afd.length() < 128) afd.push_back('0');
-	while (afd.length() > 128) afd.erase(afd.length() - 1, 1);
-	a = bfd + afd;
+
+	//Làm cho số lượng số sau dấu phẩy bằng LENGTH_OF_AFTER_POINT_BASE_2 (=112 là số bit biểu diễn giá trị)
+	while (afd.length() < LENGTH_OF_AFTER_POINT_BASE_2) afd.push_back('0'); //Thêm cho đủ
+	while (afd.length() > LENGTH_OF_AFTER_POINT_BASE_2) afd.erase(afd.length() - 1, 1); //Nếu dư thì xóa
+	a = bfd + afd; //Nối lại để thành chuỗi hoàn chỉnh.
 }
 //____________________Class______________________________//
 //Lấy giá trị của bit. // Get value of bit at position
@@ -149,7 +152,7 @@ bool QFloat::GetBit(unsigned short position) {
 	// Explain: Each m_el[i] saves 32 bits and there are 128 bit so we use two expressions to identify relative position of bit in m_el
 	return (m_el[block] & (1 << i)) != 0;
 }
-//Đặt giá trị của bit. Set // value of bit at position 
+//Đặt giá trị của bit. //Set value of bit at position 
 void QFloat::SetBit(unsigned short position, bool on) {
 	unsigned short block = position / 32;
 	unsigned short i = position % 32;
@@ -164,14 +167,14 @@ void QFloat::SetBit(unsigned short position, bool on) {
 //Đọc số QFloat, với base là cơ số. // Scan QFloat with base is form of the number input
 void QFloat::ScanQFloat(int base)
 {
-	//If base==10, turn it into binary with 35 number after dot. If base==2, normalize it. After all, converting to QFloat.
-	int N_exp = 0;
-	string tmp;
+	//Nếu là ở dạng cơ số 10 (base = 10) thì chuyển về dạng nhị phân với MAX_VALUE_EXP số sau dấu phẩy. Chuẩn hóa dạng nhị phân và chuyển về QFloat. //If base==10, turn it into binary with MAX_VALUE_EXP number after dot. Normalize it and converting to QFloat.
+	int N_exp = 0; //Lưu số lượng chữ số đứng trước dấu phẩy, phục vụ cho việc tính toán dời dấu phẩy về đằng trước.
+	string tmp; 
 	cin >> tmp;
 	if (base == 10) 
-		N_exp=convertToBin(tmp);
-	normalizeBin(tmp,N_exp);
-	this->convertToQFloat(tmp, N_exp);
+		N_exp=convertToBin(tmp); //Đổi về cơ số 2.
+	normalizeBin(tmp,N_exp); //Chuẩn hóa ở dạng cơ số 2.
+	this->convertToQFloat(tmp, N_exp); //Chuyển về dạng QFloat.
 }
 
 //Kiểm tra dãy bit từ l đến r sao cho mỗi bit bằng sd. // Check the bit's scope between l and r whether each bit equals to sd (standard)
@@ -247,15 +250,15 @@ void QFloat::PrintQFloat()
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
 				for (i = 16; i < 128; i++){
-					base2after /= 2; //(*)
-					if (GetBit(i)) value += base2after; //(*)
+					base2after /= 2; //Tính 2^(-x) x=i-15
+					if (GetBit(i)) value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
 				}
 				//Nếu là dạng chuẩn thì cộng thêm 1.
-				if (exp == 1) value++; //(*)
+				if (exp == 1) value++; 
 
 				//In giá trị
 				if (sign) cout << '-'; //Kiểm tra số âm.
-				cout << value << "x2^" << Vexp;
+				cout << value << "x2^" << Vexp; //Xuất ra dạng x.xxxx*2^x
 			}
 }
 
@@ -263,7 +266,7 @@ void QFloat::PrintQFloat()
 void QFloat::convertToQFloat(string a, int N_Exp)
 {
 	int i;
-	//Sign
+	//Dấu //Sign
 	this->SetBit(0, a[0] == '-'); //Nếu a[0]=='-' thì đặt bit đầu là 1, ngược lại là 0.
 	if (a[0] == '-') a.erase(0, 1); //Xóa kí tự đầu tiên của a nếu là '-'
 
