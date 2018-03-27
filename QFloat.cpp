@@ -9,9 +9,10 @@ void div2(string &m_float)
 	for (int k = 0; k < m_float.length(); k++) //Thực hiện phép chia từ trái sang phải.
 		{
 			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
-			if (j / p > 0) tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
+			tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
 			j %= p;
 		}
+	while (tmp.length() > 1 && tmp[0] == '0') tmp.erase(0, 1);
 	m_float = tmp;
 }
 //Chuyển về dạng nhị phân những số trước dấu phẩy bằng cách chia cho 2.

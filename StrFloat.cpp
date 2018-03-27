@@ -148,10 +148,7 @@ StrFloat & StrFloat::operator/(int p)
 		else
 		{
 			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
-			if (j / p > 0) tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
-			else
-				if (haveDot)
-					tmp.push_back('0');
+			tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
 			j %= p;
 			afd += haveDot;
 		}
