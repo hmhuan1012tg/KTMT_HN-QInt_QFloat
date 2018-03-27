@@ -13,6 +13,7 @@ void convertBFD(string &bfd)
 		sign = -1;
 		tmp.erase(0, 1); //Xóa dấu
 	}
+
 	//Thực hiện phép chia 2, lưu lại số dư trong từng phép chia.
 	while (tmp.length() != 0) {
 		j = j * 10 + tmp[0];
@@ -20,10 +21,13 @@ void convertBFD(string &bfd)
 		j = j / 2;
 		tmp.erase(0, 1); //Xóa số đầu tiên.
 	}
+
 	//Thêm dấu cho kết quả ở dạng nhị phân.
 	if (sign == -1) res.push_back('-');
+
 	//Chuyển đổi về đúng dạng nhị phân bằng cách đảo chuỗi.
 	res.reserve(res.length());
+
 	//Gán lại kết quả.
 	bfd = res;
 }
