@@ -12,7 +12,6 @@ void div2(string &m_float)
 			if (j / p > 0) tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
 			j %= p;
 		}
-	reverse(tmp.begin(), tmp.end());
 	m_float = tmp;
 }
 //Chuyển về dạng nhị phân những số trước dấu phẩy bằng cách chia cho 2.
