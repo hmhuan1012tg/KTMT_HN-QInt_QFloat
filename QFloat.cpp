@@ -7,7 +7,7 @@ void convertBFD(string &bfd)
 {
 	string res = ""; //Lưu tạm giá trị phép dư số khi chia cho 2.
 	string tmp = bfd; //Lưu tạm giá trị của bfd. 
-	int j = 0; 
+	int j = 0;
 	int sign = 0; //Lưu giá trị dấu
 	if (tmp[0] == '-') { //Kiểm tra dấu
 		sign = -1;
@@ -45,7 +45,7 @@ int checkx10(string &a)
 	}
 
 	int vx10 = 0; //Lưu giá trị của mũ.
-	while (a.length() > posx10+1) //Xóa khi còn kí tự 'x'
+	while (a.length() > posx10 + 1) //Xóa khi còn kí tự 'x'
 	{
 		vx10 = vx10 * 10 + a[posx10 + 1] - '0'; //Tính giá trị của mũ
 		a.erase(posx10 + 1, 1);
@@ -57,18 +57,18 @@ int checkx10(string &a)
 }
 
 //Chuyển về dạng nhị phân của những số sau dấu phẩy bằng cách nhân 2 rồi lấy phần nguyên. 
-int convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể chuyển từ bfd sang cho afd để thay đổi số mũ N_exp
+void convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể chuyển từ bfd sang cho afd để thay đổi số mũ N_exp
 {										//N_exp là giá trị trả về của convertAFD cho biết số mũ của a ở dạng cơ số 2. (2^N_exp)
 	int  j;
 	string res = "."; //Lưu giá trị số sau dấu phẩy phần thập phân ở dạng cơ số 2. Độ dài tối đa là 112 bit nhưng do chuyển từ bfd sang Nexp số nên chiều dài của res= 112-Nexp
-	while (res.length()-1 <112-Nexp) { //-1 vì có '.'
+	while (res.length() - 1 < 112 - Nexp) { //-1 vì có '.'
 		//Nhân afd với 2.
 		int s = 0; // lưu số nhớ trong phép nhân.
 		j = 0; //Lưu phần trích của số để nhân.
 		for (int i = afd.length() - 1; i >= 0; i--)
-			if (afd[i]!='.') 
+			if (afd[i] != '.')
 			{
-				j = (afd[i] - '0') * 2+s;
+				j = (afd[i] - '0') * 2 + s;
 				if (j > 9) s = 1;
 				else s = 0;
 				j %= 10;
@@ -82,7 +82,7 @@ int convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể 
 }
 int convertToBin(string &a)
 {
-	int hx10=checkx10(a); //Kiểm tra xem a có dạng x10^
+	int hx10 = checkx10(a); //Kiểm tra xem a có dạng x10^
 	string bfd = ""; //Lưu số trước dấu phẩy.
 	string afd = "0."; //Lưu số sau dấu phẩy.
 	int i;
@@ -90,14 +90,14 @@ int convertToBin(string &a)
 	for (i = 0; i < a.length() && a[i] != '.'; i++)
 		bfd.push_back(a[i]);
 	//Tách số sau dấu phẩy. // Extract numbers after dot
-	i++;
-	for (i = i+1; i < a.length(); i++)
+	i++; //Nhảy qua "."
+	for (i = i; i < a.length(); i++)
 		afd.push_back(a[i]);
 	afd.push_back('0');//Tránh trường hợp "0." nên cần thêm "0" vào sau cùng (không thay đổi giá trị của số)
 
 	//Nếu a có dạng "x10^" thì chuyển theo từng trường hợp (>0 hoặc <0)
 	if (hx10 > 0) {
-		for (i = 1; i <= hx10; i++) 
+		for (i = 1; i <= hx10; i++)
 		{
 			bfd.push_back(afd[2]); //afd[2] bỏ qua "0."
 			afd.erase(2, 1);
@@ -110,18 +110,18 @@ int convertToBin(string &a)
 		{
 			afd.insert(2, 1, bfd[bfd.length() - 1]); //Chuyển số cuối từ bfd sang làm số đầu của afd.
 			bfd.erase(bfd.length() - 1, 1);
-			if (bfd.length() ==0 || bfd[bfd.length()-1]=='-') bfd.push_back('0'); //Xét trường hợp bfd rỗng hoặc bfd="-".
+			if (bfd.length() == 0 || bfd[bfd.length() - 1] == '-') bfd.push_back('0'); //Xét trường hợp bfd rỗng hoặc bfd="-".
 		}
 	}
 
 	convertBFD(bfd); //Chuyển đổi bfd
-	int Nexp = bfd.length()-1-(bfd[0]=='-'); //Số lượng số có thể chuyển sang cho afd với điều kiện bfd chứ 1 số. // The number can add to express
-	convertAFD(afd,Nexp);
+	int Nexp = bfd.length() - 1 - (bfd[0] == '-'); //Số lượng số có thể chuyển sang cho afd với điều kiện bfd chứ 1 số. // The number can add to express
+	convertAFD(afd, Nexp);
 
-	a = bfd + afd; 
+	a = bfd + afd;
 	return Nexp;
 }
-void normalizeBin(string &a,int &N_exp)
+void normalizeBin(string &a)
 {
 	string bfd = "", afd = "."; //bfd: lưu số trước dấu phẩy 
 								//afd: lưu số sau dấu phẩy
@@ -135,7 +135,7 @@ void normalizeBin(string &a,int &N_exp)
 		if (bfd.length() == 2 && bfd[0] == '-') break; //Dừng khi bfd="-x"
 		afd.insert(1, 1, bfd[bfd.length()]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
 		bfd.erase(bfd.length() - 1); //Xóa số trước dấu phẩy. (Xóa cuối bfd).
-		N_exp++; //Cộng số mũ vì dời dấu phẩy qua trái.
+		//N_exp++; //Cộng số mũ vì dời dấu phẩy qua trái.
 	}
 
 	//Làm cho số lượng số sau dấu phẩy bằng LENGTH_OF_AFTER_POINT_BASE_2 (=112 là số bit biểu diễn giá trị)
@@ -145,7 +145,7 @@ void normalizeBin(string &a,int &N_exp)
 }
 //____________________Class______________________________//
 //Lấy giá trị của bit. // Get value of bit at position
-bool QFloat::GetBit(unsigned short position) { 
+bool QFloat::GetBit(unsigned short position) {
 	unsigned short block = position / 32; //Tính xem vị trí position nằm ở ô nào trong m_el.// Calculate block which postition in. 
 	unsigned short i = position % 32; //Tính bit thứ mấy trong block. // Calculate the order of bit in block.
 	// Giải thích: Vì mỗi m_el[i] lưu 32 bit và có tất cả 128 bit nên ta dùng hai phép trên để xác định vị trí tương đối của bit cần lấy trong m_el
@@ -169,16 +169,16 @@ void QFloat::ScanQFloat(int base)
 {
 	//Nếu là ở dạng cơ số 10 (base = 10) thì chuyển về dạng nhị phân với MAX_VALUE_EXP số sau dấu phẩy. Chuẩn hóa dạng nhị phân và chuyển về QFloat. //If base==10, turn it into binary with MAX_VALUE_EXP number after dot. Normalize it and converting to QFloat.
 	int N_exp = 0; //Lưu số lượng chữ số đứng trước dấu phẩy, phục vụ cho việc tính toán dời dấu phẩy về đằng trước.
-	string tmp; 
+	string tmp;
 	cin >> tmp;
-	if (base == 10) 
-		N_exp=convertToBin(tmp); //Đổi về cơ số 2.
-	normalizeBin(tmp,N_exp); //Chuẩn hóa ở dạng cơ số 2.
+	if (base == 10)
+		N_exp = convertToBin(tmp); //Đổi về cơ số 2.
+	normalizeBin(tmp); //Chuẩn hóa ở dạng cơ số 2.
 	this->convertToQFloat(tmp, N_exp); //Chuyển về dạng QFloat.
 }
 
 //Kiểm tra dãy bit từ l đến r sao cho mỗi bit bằng sd. // Check the bit's scope between l and r whether each bit equals to sd (standard)
-bool QFloat::CheckBitScope(int l, int r,int sd) // l=begining of bit'scope, r=end of bit's scope, sd(means standard)=value of each bit needs checking (only 0 or 1)
+bool QFloat::CheckBitScope(int l, int r, int sd) // l=begining of bit'scope, r=end of bit's scope, sd(means standard)=value of each bit needs checking (only 0 or 1)
 {
 	for (int i = l; i <= r; i++)
 		if (GetBit(i) != sd) return false;
@@ -228,7 +228,7 @@ void QFloat::PrintQFloat()
 	//4: Lỗi // NaN
 	if (exp == 0) cout << 0;
 	else
-		if (exp == 3) cout <<  (CheckBitScope(0, 0, 1)==true ? "-" : "") << "Infinite";
+		if (exp == 3) cout << (CheckBitScope(0, 0, 1) == true ? "-" : "") << "Infinite";
 		else
 			if (exp == 4) cout << "NaN";
 			else
@@ -239,22 +239,25 @@ void QFloat::PrintQFloat()
 				StrFloat base2after("1"); //Biến lưu giá trị tạm để tính 2^(-x). //temporary variable constain 2^(-x) (*)
 				int Vexp = 0; //Lưu giá trị của mũ // Value of exp
 				int i;
-				
+
 				//Tính giá trị của mũ theo số bít lưu trong QFloat
 				for (i = 15; i > 0; i--) {
 					if (GetBit(i)) Vexp += base2;
 					base2 *= 2;
 				}
 				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP -1
-				Vexp -= (MAX_VALUE_EXP - 1) -1 ; // (base2 / 2 - 1);
+				Vexp -= (MAX_VALUE_EXP - 1); 
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
-				for (i = 16; i < 128; i++){
+				for (i = 16; i < 128; i++) {
 					base2after /= 2; //Tính 2^(-x) x=i-15
-					if (GetBit(i)) value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
+					if (GetBit(i)) 
+						value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
 				}
 				//Nếu là dạng chuẩn thì cộng thêm 1.
-				if (exp == 1) value++; 
+				/*StrFloat t1("1");
+				if (exp == 1) value += t1;*/
+				if (exp == 1) value++; //Bị lỗi :( 
 
 				//In giá trị
 				if (sign) cout << '-'; //Kiểm tra số âm.
@@ -290,7 +293,7 @@ void QFloat::convertToQFloat(string a, int N_Exp)
 		{ //Normalized
 		Normalized:
 			// Chuyển số mũ về dạng Bias bằng cách cộng cho 2^14-1.
-			N_Exp += MAX_VALUE_EXP-1;
+			N_Exp += MAX_VALUE_EXP - 1;
 			for (i = 15; i > 0; i--) {
 				this->SetBit(i, N_Exp % 2);
 				N_Exp /= 2;
@@ -314,7 +317,7 @@ void QFloat::convertToQFloat(string a, int N_Exp)
 			a.push_back('0');
 		}
 		//Nếu ở dạng 0.xxx với số mũ MIN_VALUE_EXP hoặc 1.xx với số mũ > MIN_VALUE_EXP. Ngược lại thì nằm ngoài phạm vi biểu diễn.
-		if ( (a[0]=='0' && N_Exp == MIN_VALUE_EXP) || (a[0]=='1' && N_Exp>MIN_VALUE_EXP)) goto Normalized;
+		if ((a[0] == '0' && N_Exp == MIN_VALUE_EXP) || (a[0] == '1' && N_Exp > MIN_VALUE_EXP)) goto Normalized;
 		else goto NaN;
 	}
 }

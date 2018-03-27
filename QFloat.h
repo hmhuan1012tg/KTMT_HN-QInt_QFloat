@@ -8,7 +8,7 @@
 using namespace std;
 
 const int MAX_VALUE_EXP = 16383; //2^14-1=16383_Giá trị lớn nhất của mũ
-const int MIN_VALUE_EXP = -(MAX_VALUE_EXP + 1); //Giá trị nhỏ nhất của mũ
+const int MIN_VALUE_EXP = -(MAX_VALUE_EXP + 1); //-16382_Giá trị nhỏ nhất của mũ
 const int LENGTH_OF_AFTER_POINT_BASE_2 = 112; //Tương đương với 112 bit biểu diễn giá trị trong QFloat
 class QFloat
 {
@@ -34,7 +34,7 @@ public:
 	void ScanQFloat(int base);//Đọc số QFloat, với base là cơ số. // Scan QFloat with base is form of the number input
 	void PrintQFloat(); //In số QFloat ở dạng cơ số 10. //Print QFloat at DEC
 
-	void convertToQFloat(string a,int N_exp); //Chuyển dãy nhị phân a với số mũ là N_exp về dạng QFloat. // Convert bit string a with value exponent N_exp to QFloat
+	void convertToQFloat(string a, int N_exp); //Chuyển dãy nhị phân a với số mũ là N_exp về dạng QFloat. // Convert bit string a with value exponent N_exp to QFloat
 	QFloat BinToDec(bool *bit); // el[0]: 0-31; el[1]:32-63; el[2]:64-95; el[3]:96-127
 	bool * DecToBin(); //  1-128: el[0] -> el[3]
 };

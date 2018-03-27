@@ -1,53 +1,34 @@
-#include "StrFloat.h"
+﻿#include "StrFloat.h"
 
-
-void twoComplement(string &a) // convert a binay from non-sign form to two's complement form
+void balanceLength(string &a, string &b) //Cân bằng độ dài từng phần của a và b: trước và sau dấu phẩy.
 {
 	int i;
-	// reverse bit
-	for (i = 0; i < a.length(); i++)
-		a[i] = (a[i] - '0' + 1) % 2 + '0'; 
-
-	// plus 1
-	int j = 1;
-	for (i = a.length() - 1; i >= 0; i--)
-		if (j == 1 && a[i] == '1')
-		{
-			a[i] = '0';
-			j = 1;
-		}
-		else {
-			a[i] = (a[i] - '0' + j) + '0';
-			j = 0;
-		}
-}
-
-void balanceLength(string &a, string &b)
-{
-	int i;
-	//before dot
+	
+	//Tínhh số chữ số trước dấu phẩy của a và b. //Calculate figure of numbers before dot in string a and b.
 	int bfa = 0, bfb = 0;
 	for (i = 0; i < a.length() && a[i] != '.'; i++)
 		bfa++;
 	for (i = 0; i < b.length() && b[i] != '.'; i++)
 		bfb++;
-	string tmp = "0";
 
-	//tmp.push_back(a[0]);
+	//Thêm "0" vào đầu của a và b sao cho số lượng số bằng nhau.
+	string tmp = "0";
 	for (bfa = bfa; bfa < bfb; bfa++) a.insert(0, tmp);
-	//tmp.clear(); tmp.push_back(b[0]);
 	for (bfb = bfb; bfb < bfa; bfb++) b.insert(0, tmp);
 
-	//after dot
+	//Tínhh số chữ số sau dấu phẩy của a và b. //Calculate figure of numbers after dot in string a and b.
 	bfa = bfb = 0;
 	for (i = a.length() - 1; i >= 0 && a[i] != '.'; i--)
 		bfa++;
 	for (i = b.length() - 1; i >= 0 && b[i] != '.'; i--)
 		bfb++;
+
+	//Thêm "0" vào đầu của a và b sao cho số lượng số bằng nhau. Trường hợp nếu a và b không có số sau dấu phẩy thì bfa=bfb -> vẫn đúng. //Cần <=AFTER_DOT?
 	for (bfa = bfa; bfa < bfb && bfa <=AFTER_DOT; bfa++) a.push_back('0');
 	for (bfb = bfb; bfb < bfa &&  bfb <=AFTER_DOT; bfb++) b.push_back('0');
 }
-//-------Class--------------
+
+//-----------------------Class-------------------------------------------
 StrFloat::StrFloat()
 {
 	m_float = "";
@@ -57,67 +38,70 @@ StrFloat::StrFloat()
 StrFloat::StrFloat(string p)
 {
 	m_float = p;
-	normalize();
+	normalize(); //Chuẩn hóa số p.
 }
 
 StrFloat::~StrFloat()
 {
 }
 
+//Kiểm tra số âm. True: âm; False: dương.
 bool StrFloat::isNegative()
 {
 	return (m_negative);
 }
 
-void StrFloat::normalize() // If number is negative, eliminate sign, m_negative=true. Normalize the number 0
+//Nếu số âm thì loại bỏ dấu và gán m_negative=true. Loại bỏ số "0" ở đầu. Chuẩn hóa số 0. // If number is negative, eliminate sign, m_negative=true. Normalize the number 0.
+void StrFloat::normalize() 
 {
-	//Check negative
+	//Kiểm tra số âm. //Check negative
 	if (m_float[0] == '-') {
 		m_negative = true;
-		m_float.erase(0, 1);
+		m_float.erase(0, 1); //Loại bỏ dấu.
 	}
 	else m_negative = false;
 	
-	//Keep the number after dot equal to AFTER_DOT
-	int i=m_float.length()-1;
-	int afd = 0;
-	//Count how many numbers after dot -> afd
+	//Giữ số lượng số sau dấu phẩy bằng AFTER_DOT = 35. //Keep the number after dot equal to AFTER_DOT
+	int afd = 0; //Lưu số lượng số sau dấu phẩy.
+	//Đếm số lượng số sau dấu phẩy -> afd. //Count how many numbers after dot -> afd
+	int i = m_float.length() - 1;
 	while (i > -1 && m_float[i] != '.') { 
 		i--;
 		afd++;
 	}
-	if (i == -1) { //The number doesn't have . and after dot, so adding '0' to fill this.
-		m_float.push_back('.');
-		for (int j = 0; j <= AFTER_DOT; j++) m_float.push_back('0');
+	if (i == -1) { //Nếu như i==-1 nghĩa là số không tồn tại số sau dấu phẩy. Thêm số '0' để đủ AFTER_DOT số sau dấu phẩy. //The number doesn't have . and after dot, so adding '0' to fill this.
+		m_float.push_back('.'); //Thêm '.' 
+		for (int j = 1; j <= AFTER_DOT; j++) m_float.push_back('0'); //Thêm 0.
 	}
 	else
-		if (afd < AFTER_DOT) //Add '0' to fill it
+		if (afd < AFTER_DOT) //Thêm '0'. // Add '0' to fill it
 			for (int j = afd + 1; j <= AFTER_DOT; j++) m_float.push_back('0');
 		else 
-			while (afd > AFTER_DOT) { //Eliminate the numbers afer AFTER_DOT
+			while (afd > AFTER_DOT) { //Xóa bớt số để cho đủ AFTER_ DOT. //Eliminate the numbers afer AFTER_DOT
 				afd--;
 				m_float.erase(m_float.length() - 1, 1);
 			}
 
-	//Erase the number 0 at header until it is !'0' or a '0'.
-	while (m_float[0] == '0' && m_float.length() > 3) m_float.erase(0, 1); 
+	//Xóa số 0 ở đâu cho đến khi gặp "0.0...." //Erase the number 0 at header until it is !'0' or a '0'.
+	while (m_float[0] == '0' && m_float[1]!='.') m_float.erase(0, 1); 
 
-	//Check the situation "-0"
+	//Kiểm tra trường hợp "-0". //Check the situation "-0"
 	for (i = 0; i < m_float.length(); i++)
 		if (m_float[i] != '0' && m_float[i]!='.') return;
+	//Nếu là trường hợp "-0" thì bỏ dấu.
 	m_negative = false;
 }
 
-StrFloat & StrFloat::operator+(const StrFloat & p) //Only do with two positive numbers
+StrFloat StrFloat::operator+(const StrFloat & p) //Chỉ cộng 2 số dương. //Only do with two positive numbers
 {
-	StrFloat tmp;
+	StrFloat tmp; //Lưu kết quả trả về.
 	string a = m_float, b = p.m_float;
-	//if (m_negative) twoComplement(a);
-	//if (p.m_negative) twoComplement(b);
-	balanceLength(a, b); //balance the length of number after and before dot between a and b;
+	balanceLength(a, b); //Cân bằng số lượng số giữa a và b ở 2 phần: trước và sau dấu phẩy. //Balance the length of number after and before dot between a and b;
+	
+	//Thực hiện phép cộng
 	int i,j = 0;
 	for (i = a.length() - 1; i >= 0; i--)
-	if (a[i]!='.')
+	if (a[i]!='.') //Nếu kí tự khác "." thì thực hiện cộng.
 	{
 		int sp = a[i] + b[i] - '0' - '0' + j;
 		if (sp > 9) j = 1;
@@ -127,16 +111,18 @@ StrFloat & StrFloat::operator+(const StrFloat & p) //Only do with two positive n
 	}
 	else tmp.m_float.push_back('.');
 
-	tmp.m_float.reserve(tmp.m_float.length()); //Reverse the arrangement of the number 
-	//Need or not checking sign of result//
-	tmp.normalize();
+	//tmp.m_float.reserve(tmp.m_float.length()); 
+	reverse(tmp.m_float.begin(), tmp.m_float.end());//Đảo ngược chuỗi cho đúng thứ tự. //Reverse the arrangement of the number 
+	tmp.normalize(); //Chuẩn hóa kết quả.
 	return tmp;
 }
 
-StrFloat & StrFloat::operator=(const StrFloat & p)
+StrFloat & StrFloat::operator=(StrFloat & p)
 {
+	//m_float = p.m_float;
 	m_float = p.m_float;
 	m_negative = p.m_negative;
+	return (*this);
 }
 
 StrFloat & StrFloat::operator/(int p) 
@@ -146,21 +132,22 @@ StrFloat & StrFloat::operator/(int p)
 		m_negative = !m_negative;
 		p = -p;
 	}
-	bool haveDot = false;
-	string tmp = "";
 
-	int j = 0,afd=0;
-	for (int k = 0; k < m_float.length(); k++)
-		if (m_float[k] == '.')
+	bool haveDot = false; //Kiểm tra xem có gặp dấu "." chưa.
+	string tmp = ""; //Lưu kết quả của phép chia.
+
+	int j = 0,afd=0; //afd: số lượng số sau dấu phẩy.
+	for (int k = 0; k < m_float.length(); k++) //Thực hiện phép chia từ trái sang phải.
+		if (m_float[k] == '.') //Nếu gặp dấu "."
 		{
 			haveDot = true;
-			if (tmp == "") tmp.push_back('0');
+			if (tmp == "") tmp.push_back('0'); //Trường hợp phần nguyên không chia được cho số chia thì thêm "0" vào trước dấu ".".
 			tmp.push_back('.');
 		}
 		else 
 		{
-			j = j * 10 + m_float[k] - '0';
-			if (j / p > 0) tmp.push_back((j / p) + '0');
+			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
+			if (j / p > 0) tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
 			else
 				if (haveDot) 
 					tmp.push_back('0');
@@ -168,17 +155,22 @@ StrFloat & StrFloat::operator/(int p)
 			afd += haveDot;
 		}
 
+	//Nếu số bị chia nguyên và không chia được cho số chia thì thêm "0.". Nếu còn thừa số dư và vẫn chưa có phần thập phân thì thêm "."
 	if (j > 0 && !haveDot)
 	{
-		if (tmp.length() == 0) tmp.push_back('0');
+		if (tmp.length() == 0) tmp.push_back('0'); //Kiểm tra trường hợp số nguyên < số chia.
 		tmp.push_back('.');
 	}
+
+	//Chia cho tới khi phần thập phân có đủ AFTER_DOT số hoặc số dư = 0.
 	while (j>0 && afd<AFTER_DOT) {
 		j *= 10;
 		tmp.push_back(j / p + '0');
 		j %= p;
 		afd++;
 	}
+
+	//Gán kết quả
 	m_float = tmp;
 	this->normalize();
 	return (*this);
@@ -204,7 +196,8 @@ StrFloat StrFloat::operator+=(const StrFloat & p)
 StrFloat StrFloat::operator++(int x)
 {
 	StrFloat p("1.0");
-	(*this) = (*this) + p;
+	p.normalize();
+	(*this) += p;
 	return (*this);
 }
 
@@ -217,7 +210,7 @@ istream & operator>>(istream & is, StrFloat & p)
 
 ostream & operator<<(ostream & os, const StrFloat & p)
 {
-	if (p.m_negative) os << "-";
+	//if (p.m_negative) os << "-";
 	os << p.m_float;
 	return os;
 }
