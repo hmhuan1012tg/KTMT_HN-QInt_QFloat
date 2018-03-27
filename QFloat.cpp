@@ -246,17 +246,14 @@ void QFloat::PrintQFloat()
 					base2 *= 2;
 				}
 				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP -1
-				Vexp -= (MAX_VALUE_EXP - 1); 
+				Vexp -= (MAX_VALUE_EXP - 1);
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
 				for (i = 16; i < 128; i++) {
 					base2after /= 2; //Tính 2^(-x) x=i-15
-					if (GetBit(i)) 
+					if (GetBit(i))
 						value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
 				}
-				//Nếu là dạng chuẩn thì cộng thêm 1.
-				/*StrFloat t1("1");
-				if (exp == 1) value += t1;*/
 				if (exp == 1) value++; //Bị lỗi :( 
 
 				//In giá trị
