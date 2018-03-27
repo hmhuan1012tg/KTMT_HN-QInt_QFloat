@@ -2,6 +2,19 @@
 
 #include "QFloat.h"
 
+void div2(string &m_float)
+{
+	int p = 2,j=0;
+	string tmp = "";
+	for (int k = 0; k < m_float.length(); k++) //Thực hiện phép chia từ trái sang phải.
+		{
+			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
+			if (j / p > 0) tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
+			j %= p;
+		}
+	reverse(tmp.begin(), tmp.end());
+	m_float = tmp;
+}
 //Chuyển về dạng nhị phân những số trước dấu phẩy bằng cách chia cho 2.
 void convertBFD(string &bfd)
 {
@@ -15,19 +28,20 @@ void convertBFD(string &bfd)
 	}
 
 	//Thực hiện phép chia 2, lưu lại số dư trong từng phép chia.
-	while (tmp.length() != 0) {
-		j = j * 10 + tmp[0];
-		res.push_back(j % 2 + '0'); //Thêm số dư vào cuối.
-		j = j / 2;
-		tmp.erase(0, 1); //Xóa số đầu tiên.
+	while (tmp.length() != 0 && tmp[0]!='0') {
+		if ((tmp[tmp.length() - 1] - '0') % 2 == 1) res.push_back('1');
+		else res.push_back('0');
+		div2(tmp);
 	}
 
+	
 	//Thêm dấu cho kết quả ở dạng nhị phân.
 	if (sign == -1) res.push_back('-');
 
 	//Chuyển đổi về đúng dạng nhị phân bằng cách đảo chuỗi.
-	res.reserve(res.length());
+	reverse(res.begin(),res.end());
 
+	if (res.length() == 0) res.push_back('0');
 	//Gán lại kết quả.
 	bfd = res;
 }
@@ -137,7 +151,7 @@ void normalizeBin(string &a)
 	while (bfd.length() > 1) //Chuyển về dạng x.xxxxx tức là bfd có 1 kí tự duy nhất. 
 	{
 		if (bfd.length() == 2 && bfd[0] == '-') break; //Dừng khi bfd="-x"
-		afd.insert(1, 1, bfd[bfd.length()]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
+		afd.insert(1, 1, bfd[bfd.length()-1]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
 		bfd.erase(bfd.length() - 1); //Xóa số trước dấu phẩy. (Xóa cuối bfd).
 		//N_exp++; //Cộng số mũ vì dời dấu phẩy qua trái.
 	}
