@@ -1,7 +1,7 @@
 ﻿#include "StrFloat.h"
 
 //Cân bằng độ dài từng phần của a và b: trước và sau dấu phẩy.
-void balanceLength(string &a, string &b) 
+void balanceLength(string &a, string &b)
 {
 	int i;
 
@@ -94,12 +94,12 @@ void StrFloat::normalize()
 }
 
 //Chỉ cộng 2 số dương. //Only do with two positive numbers
-StrFloat StrFloat::operator+(const StrFloat & p) 
+StrFloat StrFloat::operator+(const StrFloat & p)
 {
 	StrFloat tmp; //Lưu kết quả trả về.
 	string a = m_float, b = p.m_float;
 	//Cân bằng số lượng số giữa a và b ở 2 phần: trước và sau dấu phẩy. //Balance the length of number after and before dot between a and b;
-	balanceLength(a, b); 
+	balanceLength(a, b);
 
 	//Thực hiện phép cộng
 	int i, j = 0;
@@ -176,7 +176,24 @@ StrFloat & StrFloat::operator/(int p)
 
 StrFloat & StrFloat::operator*(int p)
 {
-	return StrFloat();
+	if (p < 0) {
+		p = -p;
+		m_negative = !m_negative;
+	}
+	StrFloat res;
+	int j = 0, s = 0;
+	for (int i = m_float.length() - 1; i >= 0; i--)
+		if (m_float[i] != '.')
+		{
+			j = (m_float[i] - '0')*p + s;
+			s = j % 10;
+			res.m_float.push_back(j / 10 + '0');
+		}
+		else res.m_float.push_back('.');
+
+		reverse(res.m_float.begin(), res.m_float.end());
+		(*this) = res;
+		return (*this);
 }
 
 StrFloat StrFloat::operator/=(int p)

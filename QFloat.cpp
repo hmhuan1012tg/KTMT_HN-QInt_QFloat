@@ -2,19 +2,20 @@
 
 #include "QFloat.h"
 
-void div2(string &m_float)
+void div2(string &bfd)
 {
 	int p = 2,j=0;
 	string tmp = "";
-	for (int k = 0; k < m_float.length(); k++) //Thực hiện phép chia từ trái sang phải.
+	for (int k = 0; k < bfd.length(); k++) //Thực hiện phép chia từ trái sang phải.
 		{
-			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
-			tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
+			j = j * 10 + bfd[k] - '0'; //Lấy số thứ k trong chuỗi.
+			tmp.push_back((j / p) + '0'); //Lưu kết quả vào sau tmp.
 			j %= p;
 		}
 	while (tmp.length() > 1 && tmp[0] == '0') tmp.erase(0, 1);
-	m_float = tmp;
+	bfd = tmp;
 }
+
 //Chuyển về dạng nhị phân những số trước dấu phẩy bằng cách chia cho 2.
 void convertBFD(string &bfd)
 {
@@ -76,10 +77,10 @@ int checkx10(string &a)
 
 //Chuyển về dạng nhị phân của những số sau dấu phẩy bằng cách nhân 2 rồi lấy phần nguyên. 
 void convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể chuyển từ bfd sang cho afd để thay đổi số mũ N_exp
-{										//N_exp là giá trị trả về của convertAFD cho biết số mũ của a ở dạng cơ số 2. (2^N_exp)
+{							
 	int  j;
 	string res = "."; //Lưu giá trị số sau dấu phẩy phần thập phân ở dạng cơ số 2. Độ dài tối đa là 112 bit nhưng do chuyển từ bfd sang Nexp số nên chiều dài của res= 112-Nexp
-	while (res.length() - 1 < 112 - Nexp) { //-1 vì có '.'
+	while (res.length() - 1 < LENGTH_OF_AFTER_POINT_BASE_2 - Nexp) { //-1 vì có '.'
 		//Nhân afd với 2.
 		int s = 0; // lưu số nhớ trong phép nhân.
 		j = 0; //Lưu phần trích của số để nhân.
@@ -153,12 +154,11 @@ void normalizeBin(string &a)
 		if (bfd.length() == 2 && bfd[0] == '-') break; //Dừng khi bfd="-x"
 		afd.insert(1, 1, bfd[bfd.length()-1]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
 		bfd.erase(bfd.length() - 1); //Xóa số trước dấu phẩy. (Xóa cuối bfd).
-		//N_exp++; //Cộng số mũ vì dời dấu phẩy qua trái.
 	}
 
 	//Làm cho số lượng số sau dấu phẩy bằng LENGTH_OF_AFTER_POINT_BASE_2 (=112 là số bit biểu diễn giá trị)
-	while (afd.length() < LENGTH_OF_AFTER_POINT_BASE_2) afd.push_back('0'); //Thêm cho đủ
-	while (afd.length() > LENGTH_OF_AFTER_POINT_BASE_2) afd.erase(afd.length() - 1, 1); //Nếu dư thì xóa
+	while (afd.length() - 1 < LENGTH_OF_AFTER_POINT_BASE_2) afd.push_back('0'); //Thêm cho đủ
+	while (afd.length() - 1> LENGTH_OF_AFTER_POINT_BASE_2) afd.erase(afd.length() - 1, 1); //Nếu dư thì xóa
 	a = bfd + afd; //Nối lại để thành chuỗi hoàn chỉnh.
 }
 //____________________Class______________________________//
@@ -179,6 +179,63 @@ void QFloat::SetBit(unsigned short position, bool on) {
 	}
 	else {
 		m_el[block] &= (~(1 << i));
+	}
+}
+
+//Chuyển dãy nhị phân a với số mũ là N_exp về dạng QFloat. // Convert bit string a with value exponent N_exp to QFloat
+void QFloat::convertToQFloat(string a, int N_Exp)
+{
+	int i;
+	//Dấu //Sign
+	this->SetBit(0, a[0] == '-'); //Nếu a[0]=='-' thì đặt bit đầu là 1, ngược lại là 0.
+	if (a[0] == '-') a.erase(0, 1); //Xóa kí tự đầu tiên của a nếu là '-'
+
+									//Chia ra theo loại biểu diễn nhị phân để chuyển đổi.
+	if (a[0] == '1') //Dãy nhị phân a ở dạng 1.xxxx với số mũ là N_Exp.
+	{
+		if (N_Exp > MAX_VALUE_EXP) //Infinitite //Lớn hơn phạm vi mà QFloat có thể biểu diễn ở dạng nhị phân. (số mũ > MAX_VALUE_EXP)
+		{
+			for (i = 1; i < 16; i++) this->SetBit(i, 1); // Đặt tất cả các bit mũ = 1. 
+			for (i = 16; i < 128; i++) this->SetBit(i, 0); // Đặt tất cả các bit giá trị = 0.
+		}
+		if (N_Exp <= MIN_VALUE_EXP) //NaN //Số mũ nhỏ hơn hoặc bằng MIN_VALUE_EXP báo số lỗi. ???(Liệu có chuyển về được dạng 0.xxx với mũ N_exp=MIN_VALUE_EXP)
+		{
+		NaN:
+			for (i = 1; i < 16; i++) this->SetBit(i, 1); // Đặt bit mũ =1.
+														 // Đặt bit giá trị = 0 và bit thứ 16 = 1
+			for (i = 17; i < 128; i++) this->SetBit(i, 0);
+			this->SetBit(17, 1);
+		}
+		else
+		{ //Normalized
+		Normalized:
+			// Chuyển số mũ về dạng Bias bằng cách cộng cho 2^14-1.
+			N_Exp += MAX_VALUE_EXP;
+			for (i = 15; i > 0; i--) {
+				this->SetBit(i, N_Exp % 2);
+				N_Exp /= 2;
+			}
+			//Gán những bit sau dấu phẩy trong a vào QFloat.
+			int j = 2;
+			for (i = 16; i < 128; i++)
+				this->SetBit(i, a[j++] == '1');
+		}
+	}
+	else
+	{ //Denormalized
+	  //Chuyển từ dạng 0.xxx về 1.xxx với số mũ > -(2^14-1) = -16382 = MIN_VALUE_EXP
+	  //						hoặc dạng 0.xxxx với số mũ = MIN_VALUE_EXP
+	  // Nếu không thì dừng lại.
+		while (a[0] == '0' && N_Exp > MIN_VALUE_EXP)
+		{
+			N_Exp--;
+			a.erase(0, 2);
+			a.insert(1, 1, '.');
+			a.push_back('0');
+		}
+		//Nếu ở dạng 0.xxx với số mũ MIN_VALUE_EXP hoặc 1.xx với số mũ > MIN_VALUE_EXP. Ngược lại thì nằm ngoài phạm vi biểu diễn.
+		if ((a[0] == '0' && N_Exp == MIN_VALUE_EXP) || (a[0] == '1' && N_Exp > MIN_VALUE_EXP)) goto Normalized;
+		else goto NaN;
 	}
 }
 
@@ -246,9 +303,9 @@ void QFloat::PrintQFloat()
 	//4: Lỗi // NaN
 	if (exp == 0) cout << 0;
 	else
-		if (exp == 3) cout << (CheckBitScope(0, 0, 1) == true ? "-" : "") << "Infinite";
+		if (exp == 3) cout << (CheckBitScope(0, 0, 1) == true ? "-" : "") << "Infinite" << endl;
 		else
-			if (exp == 4) cout << "NaN";
+			if (exp == 4) cout << "NaN" << endl;
 			else
 			{
 				int sign = CheckBitScope(0, 0, 1); //0: (+); 1:(-)
@@ -263,8 +320,8 @@ void QFloat::PrintQFloat()
 					if (GetBit(i)) Vexp += base2;
 					base2 *= 2;
 				}
-				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP -1
-				Vexp -= (MAX_VALUE_EXP - 1);
+				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP
+				Vexp -= (MAX_VALUE_EXP);
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
 				for (i = 16; i < 128; i++) {
@@ -272,69 +329,17 @@ void QFloat::PrintQFloat()
 					if (GetBit(i))
 						value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
 				}
-				if (exp == 1) value++; //Bị lỗi :( 
+				if (exp == 1) value++; 
 
 				//In giá trị
-				if (sign) cout << '-'; //Kiểm tra số âm.
-				cout << value << "x2^" << Vexp; //Xuất ra dạng x.xxxx*2^x
+				//if (sign) cout << '-'; //Kiểm tra số âm.
+				//cout << value << "x2^" << Vexp << endl; //Xuất ra dạng x.xxxx*2^x
+				if (sign) cout << '-';
+				if (Vexp > 0) for (i = 0; i < Vexp; i++) value = value * 2;
+				else
+					if (Vexp < 0) for (i = 0; i < -Vexp; i++) value = value / 2;
+				cout << value << endl;
 			}
-}
-
-//Chuyển dãy nhị phân a với số mũ là N_exp về dạng QFloat. // Convert bit string a with value exponent N_exp to QFloat
-void QFloat::convertToQFloat(string a, int N_Exp)
-{
-	int i;
-	//Dấu //Sign
-	this->SetBit(0, a[0] == '-'); //Nếu a[0]=='-' thì đặt bit đầu là 1, ngược lại là 0.
-	if (a[0] == '-') a.erase(0, 1); //Xóa kí tự đầu tiên của a nếu là '-'
-
-	//Chia ra theo loại biểu diễn nhị phân để chuyển đổi.
-	if (a[0] == '1') //Dãy nhị phân a ở dạng 1.xxxx với số mũ là N_Exp.
-	{
-		if (N_Exp > MAX_VALUE_EXP) //Infinitite //Lớn hơn phạm vi mà QFloat có thể biểu diễn ở dạng nhị phân. (số mũ > MAX_VALUE_EXP)
-		{
-			for (i = 1; i < 16; i++) this->SetBit(i, 1); // Đặt tất cả các bit mũ = 1. 
-			for (i = 16; i < 128; i++) this->SetBit(i, 0); // Đặt tất cả các bit giá trị = 0.
-		}
-		if (N_Exp <= MIN_VALUE_EXP) //NaN //Số mũ nhỏ hơn hoặc bằng MIN_VALUE_EXP báo số lỗi. ???(Liệu có chuyển về được dạng 0.xxx với mũ N_exp=MIN_VALUE_EXP)
-		{
-		NaN:
-			for (i = 1; i < 16; i++) this->SetBit(i, 1); // Đặt bit mũ =1.
-			// Đặt bit giá trị = 0 và bit thứ 16 = 1
-			for (i = 17; i < 128; i++) this->SetBit(i, 0);
-			this->SetBit(17, 1);
-		}
-		else
-		{ //Normalized
-		Normalized:
-			// Chuyển số mũ về dạng Bias bằng cách cộng cho 2^14-1.
-			N_Exp += MAX_VALUE_EXP - 1;
-			for (i = 15; i > 0; i--) {
-				this->SetBit(i, N_Exp % 2);
-				N_Exp /= 2;
-			}
-			//Gán những bit sau dấu phẩy trong a vào QFloat.
-			int j = 2;
-			for (i = 16; i < 128; i++)
-				this->SetBit(i, a[j++] == '1');
-		}
-	}
-	else
-	{ //Denormalized
-		//Chuyển từ dạng 0.xxx về 1.xxx với số mũ > -(2^14-1) = -16382 = MIN_VALUE_EXP
-		//						hoặc dạng 0.xxxx với số mũ = MIN_VALUE_EXP
-		// Nếu không thì dừng lại.
-		while (a[0] == '0' && N_Exp > MIN_VALUE_EXP)
-		{
-			N_Exp--;
-			a.erase(0, 2);
-			a.insert(1, 1, '.');
-			a.push_back('0');
-		}
-		//Nếu ở dạng 0.xxx với số mũ MIN_VALUE_EXP hoặc 1.xx với số mũ > MIN_VALUE_EXP. Ngược lại thì nằm ngoài phạm vi biểu diễn.
-		if ((a[0] == '0' && N_Exp == MIN_VALUE_EXP) || (a[0] == '1' && N_Exp > MIN_VALUE_EXP)) goto Normalized;
-		else goto NaN;
-	}
 }
 
 // el[0]: 0-31; el[1]:32-63; el[2]:64-95; el[3]:96-127
