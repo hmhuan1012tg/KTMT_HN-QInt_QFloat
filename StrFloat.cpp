@@ -181,11 +181,13 @@ StrFloat & StrFloat::operator/(int p)
 
 StrFloat & StrFloat::operator*(int p)
 {
+	//Kiểm tra số nhân là âm thì đổi dấu của kết quả.
 	if (p < 0) {
 		p = -p;
 		m_negative = !m_negative;
 	}
-	StrFloat res;
+
+	StrFloat res; //Lưu kết quả nhân
 	int j = 0, s = 0;
 	for (int i = m_float.length() - 1; i >= 0; i--)
 		if (m_float[i] != '.')
@@ -196,11 +198,13 @@ StrFloat & StrFloat::operator*(int p)
 		}
 		else res.m_float.push_back('.');
 
+		//Nếu số dư còn thì thêm vào kết quả.
 		while (s > 0) {
 			res.m_float.push_back(s % 10 + '0');
 			s = s / 10;
 		}
-		reverse(res.m_float.begin(), res.m_float.end());
+		reverse(res.m_float.begin(), res.m_float.end());//Đảo ngược xâu kết quả để cho kết quả đúng.
+		res.normalize(); //Chuẩn hóa kết quả.
 		(*this) = res;
 		return (*this);
 }
