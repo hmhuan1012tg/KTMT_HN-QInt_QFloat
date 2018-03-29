@@ -34,13 +34,13 @@ QInt operator-(QInt q){
 }
 
 // Lấy bit ở vị trí position
-bool GetBit(QInt q, unsigned short position){
+bool QInt::GetBit(QInt q, unsigned short position){
 	unsigned short block = position / 32; // Block data cần chọn
 	unsigned short i = position % 32; // Vị trí cần lấy trong block data
 	return (q.m_binary[block] & (1 << i)) != 0;
 }
 // Đặt bit ở vị trí position, đặt = 1 nếu on = true, nếu không đặt = 0
-void SetBit(QInt& q, unsigned short position, bool on){
+void QInt::SetBit(QInt& q, unsigned short position, bool on){
 	unsigned short block = position / 32;
 	unsigned short i = position % 32;
 	if (on){
@@ -118,18 +118,18 @@ std::string DecToBin(QInt q){
 	std::string result;
 	
 	// Lấy liên tục các bit từ trái qua thêm vào chuỗi
-	unsigned short prevBit = GetBit(q, 127);
-	unsigned short curBit = GetBit(q, 126);
+	unsigned short prevBit = QInt::GetBit(q, 127);
+	unsigned short curBit = QInt::GetBit(q, 126);
 	short pos = 126;
 	while (curBit == prevBit && pos >= 0){
 		prevBit = curBit;
 		pos--;
-		curBit = GetBit(q, pos);
+		curBit = QInt::GetBit(q, pos);
 	}
 	pos++;
 
 	while (pos >= 0){
-		result.push_back(GetBit(q, pos--) + '0');
+		result.push_back(QInt::GetBit(q, pos--) + '0');
 	}
 
 	return result;
@@ -140,11 +140,11 @@ QInt BinToDec(const std::string& bits){
 	short length = bits.length();
 	// Set bit theo chuỗi nhị phân
 	for (short i = 0; i < length; i++){
-		SetBit(result, length - 1 - i, bits[i] == '1');
+		QInt::SetBit(result, length - 1 - i, bits[i] == '1');
 	}
 	// Set các bit đầu dựa trên bit đầu của chuỗi nhị phân
 	for (short i = length; i < QInt::SIZE_OF_QINT; i++){
-		SetBit(result, i, bits[0] == '1');
+		QInt::SetBit(result, i, bits[0] == '1');
 	}
 
 	return result;
@@ -232,7 +232,7 @@ QInt operator+(QInt q, QInt m){
 		// Cộng bình thường các block data
 		// Nếu có overflow từ trước, cộng thêm 1
 		result.m_binary[i] = q.m_binary[i] + m.m_binary[i] + (overflow ? 1 : 0);
-		overflow = 0xffffffff - q.m_binary[i] < m.m_binary[i];
+		overflow = ((0xffffffff - q.m_binary[i]) < m.m_binary[i]) || ((0xffffffff - q.m_binary[i]) == m.m_binary[i] && overflow);
 	}
 	return result;
 }
@@ -246,7 +246,7 @@ QInt operator*(QInt q, QInt m){
 	unsigned short temp = 0;
 	unsigned short n = QInt::SIZE_OF_QINT;
 	while (n > 0){
-		unsigned short lastQ = GetBit(m, 0);
+		unsigned short lastQ = QInt::GetBit(m, 0);
 		if (lastQ == 1 && temp == 0){
 			a = a - q;
 		}
@@ -254,10 +254,10 @@ QInt operator*(QInt q, QInt m){
 			a = a + q;
 		}
 		
-		unsigned short lastA = GetBit(a, 0);
+		unsigned short lastA = QInt::GetBit(a, 0);
 		a = a >> 1;
 		m = m >> 1;
-		SetBit(m, 127, lastA == 1);
+		QInt::SetBit(m, 127, lastA == 1);
 		temp = lastQ;
 		n--;
 	}
@@ -270,25 +270,25 @@ QInt operator*(QInt q, QInt m){
 QInt operator/(QInt q, QInt m){
 	QInt a;
 	unsigned short n = QInt::SIZE_OF_QINT;
-	bool sameSign = (GetBit(q, 127) ^ GetBit(m, 127)) == 0;
-	if (GetBit(q, 127) == 1){
+	bool sameSign = (QInt::GetBit(q, 127) ^ QInt::GetBit(m, 127)) == 0;
+	if (QInt::GetBit(q, 127) == 1){
 		q = -q;
 	}
-	if (GetBit(m, 127) == 1){
+	if (QInt::GetBit(m, 127) == 1){
 		m = -m;
 	}
 
 	while (n > 0){
-		unsigned short first = GetBit(q, 127);
+		unsigned short first = QInt::GetBit(q, 127);
 		a = a << 1;
 		q = q << 1;
-		SetBit(a, 0, first == 1);
+		QInt::SetBit(a, 0, first == 1);
 		a = a - m;
-		if (GetBit(a, 127) == 1){
+		if (QInt::GetBit(a, 127) == 1){
 			a = a + m;
 		}
 		else{
-			SetBit(q, 0, true);
+			QInt::SetBit(q, 0, true);
 		}
 		n--;
 	}
@@ -358,7 +358,7 @@ QInt operator<<(QInt q, const int n){
 // Dịch arithmetic phải
 QInt operator>>(QInt q, const int n){
 	unsigned short sum = 0;
-	bool negative = GetBit(q, 127) == 1;
+	bool negative = QInt::GetBit(q, 127) == 1;
 	while (sum < n){
 		unsigned short k;
 		if (n - sum > 32){
@@ -381,4 +381,17 @@ QInt operator>>(QInt q, const int n){
 		}
 	}
 	return q;
+}
+
+bool zero(QInt q){
+	for (int i = 0; i < 4; i++){
+		if (q.m_binary[i] != 0){
+			return false;
+		}
+	}
+	return true;
+}
+
+bool positive(QInt q){
+	return QInt::GetBit(q, 127) == 0;
 }

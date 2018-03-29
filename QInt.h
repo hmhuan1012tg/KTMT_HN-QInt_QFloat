@@ -18,16 +18,16 @@ struct QInt{
 
 	static const unsigned short BINARY = 2;
 	static const unsigned short HEX = 16;
-	
+
 	static const unsigned short UINT_NUM = 4;
-	
+
 	static const unsigned short SIZE_OF_QINT = 128;
 
 	uint32_t m_binary[UINT_NUM];
-};
 
-bool GetBit(QInt q, unsigned short position);
-void SetBit(QInt& q, unsigned short position, bool on);
+	static bool GetBit(QInt q, unsigned short position);
+	static void SetBit(QInt& q, unsigned short position, bool on);
+};
 
 void ScanQInt(QInt& q);
 void PrintQInt(QInt q);
@@ -54,3 +54,7 @@ QInt operator~(QInt q);
 // TODO: << >>
 QInt operator<<(QInt q, const int n);
 QInt operator>>(QInt q, const int n);
+
+bool zero(QInt q);
+
+bool positive(QInt q);
