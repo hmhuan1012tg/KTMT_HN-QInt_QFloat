@@ -186,11 +186,15 @@ StrFloat & StrFloat::operator*(int p)
 		if (m_float[i] != '.')
 		{
 			j = (m_float[i] - '0')*p + s;
-			s = j % 10;
-			res.m_float.push_back(j / 10 + '0');
+			s = j / 10;
+			res.m_float.push_back(j % 10 + '0');
 		}
 		else res.m_float.push_back('.');
 
+		while (s > 0) {
+			res.m_float.push_back(s % 10 + '0');
+			s = s / 10;
+		}
 		reverse(res.m_float.begin(), res.m_float.end());
 		(*this) = res;
 		return (*this);
