@@ -39,7 +39,7 @@ StrFloat::StrFloat()
 StrFloat::StrFloat(string p)
 {
 	m_float = p;
-	normalize(); //Chuẩn hóa số p.
+	normalize(); //Chuẩn hóa m_float.
 }
 
 StrFloat::~StrFloat()
@@ -114,6 +114,11 @@ StrFloat StrFloat::operator+(const StrFloat & p)
 		}
 		else tmp.m_float.push_back('.');
 
+		while (j > 0)
+		{
+			tmp.m_float.push_back(j % 10 + '0');
+			j = j / 10;
+		}
 		reverse(tmp.m_float.begin(), tmp.m_float.end());//Đảo ngược chuỗi cho đúng thứ tự. //Reverse the arrangement of the number 
 		tmp.normalize(); //Chuẩn hóa kết quả.
 		return tmp;
