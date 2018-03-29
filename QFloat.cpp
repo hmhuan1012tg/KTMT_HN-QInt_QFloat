@@ -35,6 +35,7 @@ void convertBFD(string &bfd)
 		div2(tmp);
 	}
 
+	if (res.length() == 0) res.push_back('0');
 	
 	//Thêm dấu cho kết quả ở dạng nhị phân.
 	if (sign == -1) res.push_back('-');
@@ -42,7 +43,6 @@ void convertBFD(string &bfd)
 	//Chuyển đổi về đúng dạng nhị phân bằng cách đảo chuỗi.
 	reverse(res.begin(),res.end());
 
-	if (res.length() == 0) res.push_back('0');
 	//Gán lại kết quả.
 	bfd = res;
 }
