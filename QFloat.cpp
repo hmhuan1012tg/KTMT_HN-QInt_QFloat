@@ -2,16 +2,17 @@
 
 #include "QFloat.h"
 
+//Chia bfd cho 2.
 void div2(string &bfd)
 {
-	int p = 2,j=0;
+	int p = 2, j = 0;
 	string tmp = "";
 	for (int k = 0; k < bfd.length(); k++) //Thực hiện phép chia từ trái sang phải.
-		{
-			j = j * 10 + bfd[k] - '0'; //Lấy số thứ k trong chuỗi.
-			tmp.push_back((j / p) + '0'); //Lưu kết quả vào sau tmp.
-			j %= p;
-		}
+	{
+		j = j * 10 + bfd[k] - '0'; //Lấy số thứ k trong chuỗi.
+		tmp.push_back((j / p) + '0'); //Lưu kết quả vào sau tmp.
+		j %= p;
+	}
 	while (tmp.length() > 1 && tmp[0] == '0') tmp.erase(0, 1);
 	bfd = tmp;
 }
@@ -29,19 +30,19 @@ void convertBFD(string &bfd)
 	}
 
 	//Thực hiện phép chia 2, lưu lại số dư trong từng phép chia.
-	while (tmp.length() != 0 && tmp[0]!='0') {
+	while (tmp.length() != 0 && tmp[0] != '0') {
 		if ((tmp[tmp.length() - 1] - '0') % 2 == 1) res.push_back('1');
 		else res.push_back('0');
 		div2(tmp);
 	}
 
 	if (res.length() == 0) res.push_back('0');
-	
+
 	//Thêm dấu cho kết quả ở dạng nhị phân.
 	if (sign == -1) res.push_back('-');
 
 	//Chuyển đổi về đúng dạng nhị phân bằng cách đảo chuỗi.
-	reverse(res.begin(),res.end());
+	reverse(res.begin(), res.end());
 
 	//Gán lại kết quả.
 	bfd = res;
@@ -77,7 +78,7 @@ int checkx10(string &a)
 
 //Chuyển về dạng nhị phân của những số sau dấu phẩy bằng cách nhân 2 rồi lấy phần nguyên. 
 void convertAFD(string &afd, int Nexp) //Nexp: lưu số lượng số có thể chuyển từ bfd sang cho afd để thay đổi số mũ N_exp
-{							
+{
 	int  j;
 	string res = "."; //Lưu giá trị số sau dấu phẩy phần thập phân ở dạng cơ số 2. Độ dài tối đa là 112 bit nhưng do chuyển từ bfd sang Nexp số nên chiều dài của res= 112-Nexp
 	while (res.length() - 1 < LENGTH_OF_AFTER_POINT_BASE_2 - Nexp) { //-1 vì có '.'
@@ -152,13 +153,13 @@ void normalizeBin(string &a)
 	while (bfd.length() > 1) //Chuyển về dạng x.xxxxx tức là bfd có 1 kí tự duy nhất. 
 	{
 		if (bfd.length() == 2 && bfd[0] == '-') break; //Dừng khi bfd="-x"
-		afd.insert(1, 1, bfd[bfd.length()-1]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
+		afd.insert(1, 1, bfd[bfd.length() - 1]); //Thêm số vào sau dấu phẩy. (Thêm vào đầu afd)
 		bfd.erase(bfd.length() - 1); //Xóa số trước dấu phẩy. (Xóa cuối bfd).
 	}
 
 	//Làm cho số lượng số sau dấu phẩy bằng LENGTH_OF_AFTER_POINT_BASE_2 (=112 là số bit biểu diễn giá trị)
 	while (afd.length() - 1 < LENGTH_OF_AFTER_POINT_BASE_2) afd.push_back('0'); //Thêm cho đủ
-	while (afd.length() - 1> LENGTH_OF_AFTER_POINT_BASE_2) afd.erase(afd.length() - 1, 1); //Nếu dư thì xóa
+	while (afd.length() - 1 > LENGTH_OF_AFTER_POINT_BASE_2) afd.erase(afd.length() - 1, 1); //Nếu dư thì xóa
 	a = bfd + afd; //Nối lại để thành chuỗi hoàn chỉnh.
 }
 //____________________Class______________________________//
@@ -209,8 +210,10 @@ void QFloat::convertToQFloat(string a, int N_Exp)
 		else
 		{ //Normalized
 		Normalized:
-			// Chuyển số mũ về dạng Bias bằng cách cộng cho 2^14-1.
-			N_Exp += (MAX_VALUE_EXP-1);
+			// Chuyển số mũ về dạng Bias bằng cách cộng cho MAX_VALUE_EXP. Nếu là dạng không chuẩn (N_exp=0) thì cộng thêm MAX_VALUE_EXP-1.
+			if (N_Exp != MIN_VALUE_EXP) N_Exp += (MAX_VALUE_EXP);
+			else N_Exp += MAX_VALUE_EXP - 1;
+
 			for (i = 15; i > 0; i--) {
 				this->SetBit(i, N_Exp % 2);
 				N_Exp /= 2;
@@ -320,8 +323,9 @@ void QFloat::PrintQFloat()
 					if (GetBit(i)) Vexp += base2;
 					base2 *= 2;
 				}
-				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP
-				Vexp -= (MAX_VALUE_EXP-1);
+				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP nếu là số dạng không chuẩn thì trừ đi MAX_VALUE_EXP – 1.
+				if (Vexp != 0) Vexp -= (MAX_VALUE_EXP);
+				else Vexp -= (MAX_VALUE_EXP - 1);
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
 				for (i = 16; i < 128; i++) {
@@ -329,7 +333,7 @@ void QFloat::PrintQFloat()
 					if (GetBit(i))
 						value += base2after; //Nếu giá trị của bit = 1 thì cộng dồn vào giá trị sau dấu phẩy.
 				}
-				if (exp == 1) value++; 
+				if (exp == 1) value++;
 
 				//In giá trị
 				//if (sign) cout << '-'; //Kiểm tra số âm.

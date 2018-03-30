@@ -36,6 +36,7 @@ StrFloat::StrFloat()
 	m_negative = false;
 }
 
+//Chuyển từ sâu p về StrFloat.
 StrFloat::StrFloat(string p)
 {
 	m_float = p;
@@ -131,10 +132,11 @@ StrFloat & StrFloat::operator=(StrFloat & p)
 	return (*this);
 }
 
+//Chia xâu m_float cho số chia p.
 StrFloat & StrFloat::operator/(int p)
 {
 	if (p == 0) return (*this);
-	if (p < 0) {
+	if (p < 0) { //Kiểm tra số chia có âm hay không. Nếu có thì thay đổi dấu bị chia.
 		m_negative = !m_negative;
 		p = -p;
 	}
@@ -153,7 +155,7 @@ StrFloat & StrFloat::operator/(int p)
 		else
 		{
 			j = j * 10 + m_float[k] - '0'; //Lấy số thứ k trong chuỗi.
-			tmp.push_back((j / p) + '0'); //Nếu chia được cho số chia thì đẩy kết quả vào sau tmp. Ngược lại kiểm tra xem có dấu "." trong tmp chưa, nếu có thì thêm "0" vào và chia nữa, nếu không thì bỏ qua.
+			tmp.push_back((j / p) + '0'); //Thêm kết quả vào sau chuỗi tmp.
 			j %= p;
 			afd += haveDot;
 		}
@@ -179,6 +181,7 @@ StrFloat & StrFloat::operator/(int p)
 	return (*this);
 }
 
+//Nhân xâu m_float cho số nhân p
 StrFloat & StrFloat::operator*(int p)
 {
 	//Kiểm tra số nhân là âm thì đổi dấu của kết quả.
@@ -221,6 +224,7 @@ StrFloat StrFloat::operator+=(const StrFloat & p)
 	return (*this);
 }
 
+//Tăng lên 1 đơn vị ở phần nguyên.
 StrFloat StrFloat::operator++(int x)
 {
 	StrFloat p("1.0");
@@ -229,6 +233,7 @@ StrFloat StrFloat::operator++(int x)
 	return (*this);
 }
 
+//Nhập xâu vào m_float rồi chuẩn hóa.
 istream & operator>>(istream & is, StrFloat & p)
 {
 	is >> p.m_float;
@@ -236,6 +241,7 @@ istream & operator>>(istream & is, StrFloat & p)
 	return is;
 }
 
+//Xuất xâu lưu trong m_float.
 ostream & operator<<(ostream & os, const StrFloat & p)
 {
 	//if (p.m_negative) os << "-";
