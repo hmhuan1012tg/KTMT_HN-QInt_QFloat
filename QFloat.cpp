@@ -210,7 +210,7 @@ void QFloat::convertToQFloat(string a, int N_Exp)
 		{ //Normalized
 		Normalized:
 			// Chuyển số mũ về dạng Bias bằng cách cộng cho 2^14-1.
-			N_Exp += MAX_VALUE_EXP;
+			N_Exp += (MAX_VALUE_EXP-1);
 			for (i = 15; i > 0; i--) {
 				this->SetBit(i, N_Exp % 2);
 				N_Exp /= 2;
@@ -222,7 +222,7 @@ void QFloat::convertToQFloat(string a, int N_Exp)
 		}
 	}
 	else
-	{ //Denormalized
+	{  //Denormalized
 	  //Chuyển từ dạng 0.xxx về 1.xxx với số mũ > -(2^14-1) = -16382 = MIN_VALUE_EXP
 	  //						hoặc dạng 0.xxxx với số mũ = MIN_VALUE_EXP
 	  // Nếu không thì dừng lại.
@@ -321,7 +321,7 @@ void QFloat::PrintQFloat()
 					base2 *= 2;
 				}
 				//Chuyển lại theo số Bias bằng cách trừ đi lượng MAX_VALUE_EXP
-				Vexp -= (MAX_VALUE_EXP);
+				Vexp -= (MAX_VALUE_EXP-1);
 
 				//Chuyển đối giá trị sau dấu phẩy về dạng thập phân với 35 số sau dấu phẩy.
 				for (i = 16; i < 128; i++) {
